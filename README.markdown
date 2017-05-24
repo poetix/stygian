@@ -72,7 +72,7 @@ Sequence
 Suppose we only want to fetch the weather for users with proper credentials. We might define a flow like this, using the `or` operator:
 
 ```java
-Condition<WeatherRequest> hasValidCredentials = Condition("Check credentials", weatherRequest -> credentialsChecker.check(weatherRequest));
+Condition<WeatherRequest> hasValidCredentials = asyncCondition("Check credentials", weatherRequest -> credentialsChecker.check(weatherRequest));
 Flow<WeatherRequest, Postcode> extractPostcode = flow("Extract postcode", weatherRequest -> weatherRequest.getPostcode());
 Flow<WeatherRequest, String> extractError = flow("Extract error message", weatherRequest -> "Sorry, " + weatherRequest.getUsername() + ", your credentials are not valid");
 
@@ -86,7 +86,7 @@ Here's how that pretty-prints:
 
 ```
 Branch
-		If Check credentials: Sequence
+		If credentials ok: Sequence
 			1: Extract postcode
 			2: Sequence
 				2.1: Fetch weather
