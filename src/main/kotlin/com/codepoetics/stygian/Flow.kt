@@ -7,11 +7,7 @@ import java.util.stream.Stream
  */
 data class ConditionalFlow<I, O>(val condition: Condition<I>, val flow: Flow<I, O>)
 
-/**
- * Represents a flow of execution.
- */
-sealed class Flow<I, O> {
-
+interface Visitable<I, O> {
     /**
      * Run the flow with the supplied input, using the supplied FlowVisitor to define the execution strategy.
      */
@@ -20,7 +16,13 @@ sealed class Flow<I, O> {
     /**
      * Use a FlowVisitor to convert the flow into a single Action that can be executed.
      */
-    abstract fun visit(visitor: FlowVisitor): Action<I, O>
+    fun visit(visitor: FlowVisitor): Action<I, O>
+}
+
+/**
+ * Represents a flow of execution.
+ */
+sealed class Flow<I, O>: Visitable<I, O> {
 
     /**
      * Sequence this flow with another flow, creating a new flow that first performs this flow, then passes its output to the second flow.
@@ -33,7 +35,7 @@ sealed class Flow<I, O> {
     /**
      * Create a branching flow which tests the supplied condition, and branches to the supplied flow if it is met, otherwise continuing with the current flow.
      */
-    open fun or(condition: Condition<I>, ifTrue: Flow<I, O>): Flow<I, O> =
+    open fun orIf(condition: Condition<I>, ifTrue: Flow<I, O>): Flow<I, O> =
             Branch(this, mapOf(condition.name to ConditionalFlow(condition, ifTrue)))
 
     /**
@@ -44,7 +46,7 @@ sealed class Flow<I, O> {
     }
 
     /**
-     * A branching flow which tests all of its branching conditions, executing the flow associated with the first condition that succeeds, or falling through to the default flow otherwise.
+     * A branching flow which tests all of its branching conditions, executing the flow associated with the first condition that succeeds, orIf falling through to the default flow otherwise.
      * Note that no ordering is defined on the branching conditions, which may be tested in any order.
      */
     class Branch<I, O>(val default: Flow<I, O>, val branches: Map<String, ConditionalFlow<I, O>>): Flow<I, O>() {
@@ -62,7 +64,7 @@ sealed class Flow<I, O> {
             return action
         }
 
-        override fun or(condition: Condition<I>, ifTrue: Flow<I, O>): Flow<I, O> = Branch(
+        override fun orIf(condition: Condition<I>, ifTrue: Flow<I, O>): Flow<I, O> = Branch(
                 default,
                 branches.plus(condition.name to ConditionalFlow(condition, ifTrue)))
 
@@ -87,7 +89,6 @@ sealed class Flow<I, O> {
                 middle.plus(last as Flow<Any, Any>),
                 next as Flow<Any, O2>)
     }
-
 }
 
 /**

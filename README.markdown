@@ -69,7 +69,7 @@ Sequence
 
 ## Branching
 
-Suppose we only want to fetch the weather for users with proper credentials. We might define a flow like this, using the `or` operator:
+Suppose we only want to fetch the weather for users with proper credentials. We might define a flow like this, using the `orIf` operator:
 
 ```java
 Condition<WeatherRequest> hasValidCredentials = asyncCondition("Check credentials", weatherRequest -> credentialsChecker.check(weatherRequest));
@@ -79,7 +79,7 @@ Flow<WeatherRequest, String> extractError = flow("Extract error message", weathe
 Flow<WeatherRequest, Unit> printErrorToConsole = extractError.then(printToConsole);
 
 Flow<WeatherRequest, Unit> fetchAndPrintWeatherIfValid = printErrorToConsole
-    .or(hasValidCredentials, extractPostcode.then(fetchAndPrintWeather));
+    .orIf(hasValidCredentials, extractPostcode.then(fetchAndPrintWeather));
 ```
 
 Here's how that pretty-prints:
@@ -102,7 +102,7 @@ We can simplify this a bit by stitching the flows in the "happy path" together m
 
 ```java
 Flow<WeatherRequest, Unit> fetchAndPrintWeatherIfValid = printErrorToConsole
-    .or(
+    .orIf(
         hasValidCredentials,
         extractPostcode
             .then(fetchWeather)

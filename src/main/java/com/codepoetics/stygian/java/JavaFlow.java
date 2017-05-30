@@ -47,15 +47,15 @@ public final class JavaFlow {
         });
     }
 
-    public static <I, O> CompletableFuture<O> run(Flow<I, O> flow, I input) {
+    public static <I, O> CompletableFuture<O> run(Visitable<I, O> flow, I input) {
         return run(flow, input, getDefaultFlowVisitor());
     }
 
-    public static <I, O> CompletableFuture<O> runLogging(Flow<I, O> flow, I input, Consumer<String> logger) {
+    public static <I, O> CompletableFuture<O> runLogging(Visitable<I, O> flow, I input, Consumer<String> logger) {
         return run(flow, input, withLogging(getDefaultFlowVisitor(), logger));
     }
 
-    public static <I, O> CompletableFuture<O> run(Flow<I, O> flow, I input, FlowVisitor visitor) {
+    public static <I, O> CompletableFuture<O> run(Visitable<I, O> flow, I input, FlowVisitor visitor) {
         return flow.run(input, visitor);
     }
 

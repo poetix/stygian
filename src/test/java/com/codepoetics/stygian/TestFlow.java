@@ -35,7 +35,7 @@ public class TestFlow {
         Condition<String> isHardOfHearing = condition("is hard of hearing", name -> name.contains("Floki"));
         Flow<String, String> makeUppercase = flow("Uppercase", String::toUpperCase);
 
-        return leaveLowercase.or(isHardOfHearing, makeUppercase);
+        return leaveLowercase.orIf(isHardOfHearing, makeUppercase);
     }
 
     private Flow<String, String> createEmphasiseAndPrintFlow() {
@@ -56,8 +56,8 @@ public class TestFlow {
         Flow<String, String> greetQueen = flow("Greet the queen", name -> "Greetings, ma'am");
 
         return greetCommoner
-            .or(isKing, greetKing)
-            .or(isQueen, greetQueen);
+            .orIf(isKing, greetKing)
+            .orIf(isQueen, greetQueen);
     }
 
 }

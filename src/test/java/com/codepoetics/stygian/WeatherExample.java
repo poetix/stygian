@@ -109,7 +109,7 @@ public class WeatherExample {
         Flow<WeatherRequest, Unit> printErrorToConsole = extractError.then(printToConsole);
 
         Flow<WeatherRequest, Unit> fetchAndPrintWeatherIfValid = printErrorToConsole
-                .or(
+                .orIf(
                         hasValidCredentials,
                         extractPostcode.
                                 then(fetchWeather)
