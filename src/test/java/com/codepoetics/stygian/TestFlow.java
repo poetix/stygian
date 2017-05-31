@@ -5,7 +5,6 @@ import org.junit.Test;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
-import static com.codepoetics.stygian.FlowDescriberKt.describe;
 import static com.codepoetics.stygian.java.JavaFlow.*;
 import static org.junit.Assert.assertEquals;
 
@@ -23,7 +22,7 @@ public class TestFlow {
                 .then(selectCase)
                 .then(emphasiseAndPrint);
 
-        System.out.println(describe(greet));
+        System.out.println(prettyPrint(greet));
 
         assertEquals("Greetings, sire!", runLogging(greet, "King Rollo", LOGGER::info).get());
         assertEquals("Greetings, ma'am!", runLogging(greet, "Queen Quenfrith", LOGGER::info).get());

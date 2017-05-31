@@ -32,8 +32,8 @@ public final class JavaFlow {
         return new Condition<>(name, predicate::apply);
     }
 
-    public static <I, O> String describe(Flow<I, O> flow) {
-        return FlowDescriberKt.describe(flow);
+    public static <I, O> String prettyPrint(Flow<I, O> flow) {
+        return FlowDescriberKt.prettyPrint(flow);
     }
 
     public static FlowVisitor getDefaultFlowVisitor() {

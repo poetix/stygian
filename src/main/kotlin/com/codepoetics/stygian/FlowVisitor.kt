@@ -1,6 +1,21 @@
 package com.codepoetics.stygian
 
 /**
+ * Visitable by a FlowVisitor.
+ */
+interface Visitable<I, O> {
+    /**
+     * Run the flow with the supplied input, using the supplied FlowVisitor to define the execution strategy.
+     */
+    fun run(input: I, visitor: FlowVisitor = DefaultFlowVisitor): Async<O> = visit(visitor).invoke(input)
+
+    /**
+     * Use a FlowVisitor to convert the flow into a single Action that can be executed.
+     */
+    fun visit(visitor: FlowVisitor): Action<I, O>
+}
+
+/**
  * A visitor which determines an execution strategy for a flow.
  */
 interface FlowVisitor {

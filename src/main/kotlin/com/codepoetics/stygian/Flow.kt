@@ -1,28 +1,17 @@
 package com.codepoetics.stygian
 
 import java.util.stream.Stream
+import kotlin.streams.toList
 
 /**
  * Represents a condition together with the flow that should be followed if that condition is met.
  */
 data class ConditionalFlow<I, O>(val condition: Condition<I>, val flow: Flow<I, O>)
 
-interface Visitable<I, O> {
-    /**
-     * Run the flow with the supplied input, using the supplied FlowVisitor to define the execution strategy.
-     */
-    fun run(input: I, visitor: FlowVisitor = DefaultFlowVisitor): Async<O> = visit(visitor).invoke(input)
-
-    /**
-     * Use a FlowVisitor to convert the flow into a single Action that can be executed.
-     */
-    fun visit(visitor: FlowVisitor): Action<I, O>
-}
-
 /**
  * Represents a flow of execution.
  */
-sealed class Flow<I, O>: Visitable<I, O> {
+sealed class Flow<I, O>: Visitable<I, O>, DescribableFlow {
 
     /**
      * Sequence this flow with another flow, creating a new flow that first performs this flow, then passes its output to the second flow.
@@ -42,6 +31,8 @@ sealed class Flow<I, O>: Visitable<I, O> {
      * A flow which executes a single Action.
      */
     class Only<I, O>(val action: Action<I, O>): Flow<I, O>() {
+        override fun describe(describer: FlowDescriber): FlowDescriber = describer.describeOnly(action.name)
+
         override fun visit(visitor: FlowVisitor): Action<I, O> = visitor.action(action)
     }
 
@@ -50,6 +41,10 @@ sealed class Flow<I, O>: Visitable<I, O> {
      * Note that no ordering is defined on the branching conditions, which may be tested in any order.
      */
     class Branch<I, O>(val default: Flow<I, O>, val branches: Map<String, ConditionalFlow<I, O>>): Flow<I, O>() {
+        override fun describe(describer: FlowDescriber): FlowDescriber =
+                describer.describeBranch(
+                        branches.mapValues { it.value.flow },
+                        default)
 
         override fun visit(visitor: FlowVisitor): Action<I, O> {
             val branchIter = branches.values.iterator()
@@ -73,12 +68,25 @@ sealed class Flow<I, O>: Visitable<I, O> {
     /**
      * A flow which executes a sequence of at least two flows ("first" and "last")
      */
-    class Sequence<I, O>(val first: Flow<I, Any>, val middle: List<Flow<Any, Any>>, val last: Flow<Any, O>): Flow<I, O>() {
-        override fun visit(visitor: FlowVisitor): Action<I, O> =
+    class Sequence<I, O>(val first: Flow<I, *>, val middle: List<Flow<*, *>>, val last: Flow<*, O>): Flow<I, O>() {
+        override fun describe(describer: FlowDescriber): FlowDescriber =
+            describer.describeSequence(streamAll().toList())
+
+        private fun streamMiddleToLast(): Stream<Flow<*, *>> =
             Stream.concat(
                     middle.stream(),
-                    Stream.of(last as Flow<Any, Any>))
-                    .map { it.visit(visitor) }
+                    Stream.of(last)
+            )
+
+        private fun streamAll(): Stream<Flow<*, *>> =
+            Stream.concat(
+                    Stream.of(first),
+                    streamMiddleToLast()
+            )
+
+        override fun visit(visitor: FlowVisitor): Action<I, O> =
+            streamMiddleToLast()
+                    .map { it.visit(visitor) as Action<Any, Any> }
                     .reduce(
                             first.visit(visitor) as Action<Any, Any>,
                             { f1, f2 -> visitor.sequence(f1, f2) })
@@ -86,8 +94,8 @@ sealed class Flow<I, O>: Visitable<I, O> {
 
         override fun <O2> then(next: Flow<O, O2>): Flow<I, O2> = Sequence(
                 first,
-                middle.plus(last as Flow<Any, Any>),
-                next as Flow<Any, O2>)
+                middle.plus(last),
+                next as Flow<*, O2>)
     }
 }
 

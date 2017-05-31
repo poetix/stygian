@@ -7,9 +7,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
-import static com.codepoetics.stygian.FlowDescriberKt.describe;
 import static com.codepoetics.stygian.java.JavaFlow.*;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -116,7 +114,7 @@ public class WeatherExample {
                                 .then(formatWeather)
                                 .then(printToConsole));
 
-        System.out.println(describe(fetchAndPrintWeatherIfValid));
+        System.out.println(prettyPrint(fetchAndPrintWeatherIfValid));
 
         runLogging(fetchAndPrintWeatherIfValid, myRequest, LOGGER::info);
     }

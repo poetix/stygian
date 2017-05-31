@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
-import static com.codepoetics.stygian.java.JavaFlow.describe;
+import static com.codepoetics.stygian.java.JavaFlow.prettyPrint;
 import static com.codepoetics.stygian.java.JavaFlow.runLogging;
 import static com.codepoetics.stygian.java.json.JavaJsonFlow.*;
 
@@ -48,7 +48,7 @@ public class JsonContextTest {
                 .thenIf(credentialsAreValid, fetchAndFormatWeather)
                 .otherwise(formatFailure);
 
-        System.out.println(describe(flow.getFlow().getFlow()));
+        System.out.println(prettyPrint(flow.getFlow().getFlow()));
         runLogging(flow, ctx, System.out::println);
     }
 
